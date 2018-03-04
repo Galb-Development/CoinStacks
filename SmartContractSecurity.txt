@@ -1,0 +1,24 @@
+Smart Contract analysis:
+
+External APIs are Re-entrancy attack proof (Also known as recursive call attack):
+1. Place coin: function placeCoin(uint16 _x, uint16 _y) external payable:
+No calls to external contracts. No direct fund transfer to any users. Instead, the contract credits users' in-game balance and have them call withdrawBalance() for fund withdrawal. Therefore, no re-entrancy is possible inside this function
+
+2. Balance withdrawal: function withdrawBalance(uint256 _amountToWithdraw) external:
+Fund withdrawal follows pattern recommended by Solidity doc. Subtract amount before transfering, to avoid re-entrancy attack. (https://solidity.readthedocs.io/en/develop/common-patterns.html)
+
+3. Transfer ownership: function transferOwnership(address _newOwner) external:
+No calls to external contracts. No direct fund transfer to any users. Callable by admin only.
+
+4. See transaction fee: function setFeeDivisor(uint256 _newDivisor) external:
+No calls to external contracts. No direct fund transfer to any users. Callable by admin only.
+
+5. Fallback function: function() payable external
+Credit the received amount to contract admin. No re-entrancy is possible.
+
+Avoid looping for any data structure:
+Looping through an array of data is considered as bad practice if the array can grow unboundedly. Since the gas would cost more when it loops through a larger array, the function would become more expensive to run each time. It could even be unexecutable if it exceeds current maximum gas amount for a transaction.
+
+Restrict function call permission:
+Only two necessary transactions are availabe to call by non-admin user, namely placeCoin(), and withdrawBalance(). All other functions are declared internal, which can only be called from within the contract, or declared constant, which would be a call instead of a transaction(not executed by the blockchain).
+
